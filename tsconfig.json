@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "ES5",
+    "lib": [
+      "ES2015",
+      "es2017",
+    ],
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    //"baseUrl": "../build/dist/client/Data/Platform/Modules",
+    "baseUrl": "../skymp/build/dist/client/Data/Platform/Modules",
+    "sourceMap": false,
+    "removeComments": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "noImplicitAny": true,
+  }
+}
