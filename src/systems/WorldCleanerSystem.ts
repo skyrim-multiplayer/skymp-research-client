@@ -1,7 +1,7 @@
 import * as sp from "skyrimPlatform";
 import * as tk from "tick-knock";
 
-import { PlayerId } from './../common/types';
+import { playerId } from './../skyrim.types';
 
 export class WorldCleanerSystem extends tk.System {
   private _protectionList: Map<number, number> = new Map<number, number>();
@@ -51,7 +51,7 @@ export class WorldCleanerSystem extends tk.System {
     const isProtected = this._protectionList.get(randomActorId)! > 0;
     if (isProtected === true) return;
 
-    if (randomActorId === PlayerId || randomActor.isDeleted()) return;
+    if (randomActorId === playerId || randomActor.isDeleted()) return;
     if (this.isInDialogue(randomActor)) {
       // Deleting actor in dialogue crashes Skyrim
       // https://github.com/skyrim-multiplayer/issue-tracker/issues/13

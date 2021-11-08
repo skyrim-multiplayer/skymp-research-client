@@ -1,7 +1,7 @@
 import * as sp from "skyrimPlatform";
 import * as tk from "tick-knock";
-import { PeriodUpdater } from "../common/PeriodUpdater";
-import { AuiType } from "../common/types";
+import { PeriodUpdater } from "./../common/PeriodUpdater";
+import { AuiType } from "./../skyrim.types";
 
 /**
  * Weather control system

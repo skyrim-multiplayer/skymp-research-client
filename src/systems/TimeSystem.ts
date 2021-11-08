@@ -1,7 +1,7 @@
 import * as sp from "skyrimPlatform";
 import * as tk from "tick-knock";
-import { PeriodUpdater } from "../common/PeriodUpdater";
-import { getGlobalVariable, GlobalVariableFormId } from "../common/types";
+import { PeriodUpdater } from "./../common/PeriodUpdater";
+import { getGlobalVariable, GlobalVariableFormId } from "./../skyrim.types";
 
 /**
  * Time control system
@@ -16,24 +16,24 @@ export class TimeSystem extends tk.System {
   private innerUpdate(): void {
     const nowDate = new Date();
 
-    // const gameHour = getGlobalVariable(GlobalVariableFormId.GameHourId);
-    // gameHour.setValue(
-    //   nowDate.getUTCHours() +
-    //   nowDate.getUTCMinutes() / 60 +
-    //   nowDate.getUTCSeconds() / 60 / 60 +
-    //   nowDate.getUTCMilliseconds() / 60 / 60 / 1000
-    // );
+    const gameHour = getGlobalVariable(GlobalVariableFormId.GameHourId);
+    gameHour?.setValue(
+      nowDate.getUTCHours() +
+      nowDate.getUTCMinutes() / 60 +
+      nowDate.getUTCSeconds() / 60 / 60 +
+      nowDate.getUTCMilliseconds() / 60 / 60 / 1000
+    );
 
-    // const gameDay = sp.GlobalVariable.from(sp.Game.getFormEx(gameDayId)) as sp.GlobalVariable;
-    // gameDay.setValue(nowDate.getUTCDate());
+    const gameDay = getGlobalVariable(GlobalVariableFormId.GameDayId);
+    gameDay?.setValue(nowDate.getUTCDate());
 
-    // const gameMonth = sp.GlobalVariable.from(sp.Game.getFormEx(gameMonthId)) as sp.GlobalVariable;
-    // gameMonth.setValue(nowDate.getUTCMonth());
+    const gameMonth = getGlobalVariable(GlobalVariableFormId.GameMonthId);
+    gameMonth?.setValue(nowDate.getUTCMonth());
 
-    // const gameYear = sp.GlobalVariable.from(sp.Game.getFormEx(gameYearId)) as sp.GlobalVariable;
-    // gameYear.setValue(nowDate.getUTCFullYear() - 2020 + 199);
+    const gameYear = getGlobalVariable(GlobalVariableFormId.GameYearId);
+    gameYear?.setValue(nowDate.getUTCFullYear() - 2020 + 199);
 
-    // const timeScale = sp.GlobalVariable.from(sp.Game.getFormEx(timeScaleId)) as sp.GlobalVariable;
-    // timeScale.setValue(1);
+    const timeScale = getGlobalVariable(GlobalVariableFormId.TimeScaleId);
+    timeScale?.setValue(1);
   }
 }

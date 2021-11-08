@@ -6,6 +6,7 @@
       "es2017",
     ],
     "module": "CommonJS",
+    "resolveJsonModule": true,
     "moduleResolution": "node",
     //"baseUrl": "../build/dist/client/Data/Platform/Modules",
     "baseUrl": "../skymp/build/dist/client/Data/Platform/Modules",

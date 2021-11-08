@@ -1,34 +1,25 @@
-import * as sp from "skyrimPlatform";
+/** Events **/
 
-/**
- * Player form id in the game
- */
-export const PlayerId: number = 0x14;
+export type EventEmitterHandler<T> = (value: T) => void;
 
-/**
- * The type of weather you want
- */
-export enum AuiType {
-  Pleasant = 0,
-  Cloudy = 1,
-  Rainy = 2,
-  Snow = 3,
+export interface EventEmitter<TEvent, TValue> {
+  addListener(eventName: TEvent, handler: EventEmitterHandler<TValue>): void;
+  removeListener(eventName: TEvent, handler: EventEmitterHandler<TValue>): void
 }
 
-/**
- * Global variable identifiers
- */
-export enum GlobalVariableFormId {
-  GameHourId = 0x38,
-  GameMonthId = 0x36,
-  GameDayId = 0x37,
-  GameYearId = 0x35,
-  TimeScaleId = 0x3a,
+/** Settings **/
+
+export interface SkympClientGameDataSettings {
+  profileId?: number;
 }
 
-/**
- * Returns global variable by form id or null if it doesn't exist
- * @param id 
- * @returns 
- */
-export const getGlobalVariable = (id: GlobalVariableFormId): sp.GlobalVariable | null => sp.GlobalVariable.from(sp.Game.getFormEx(id));
+export interface SkympClientSettings {
+  clientVersion: string,
+  skyrimPlatformVersion: string | null,
+  debug: boolean,
+  serverIp?: string,
+  serverPort?: number,
+  gameData?: SkympClientGameDataSettings,
+  showMe?: boolean,
+  showClones?: boolean,
+}

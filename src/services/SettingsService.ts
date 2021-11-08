@@ -1,23 +1,29 @@
 import * as sp from "skyrimPlatform";
-import { SkympClientGameDataSettings, SkympClientSettings } from './../models/SkympClientSettings';
+import { SkympClientSettings } from './../common/types';
+import * as pckg from "./../../package.json";
 
 /**
- * Settings service. Now for snapshots only and without interface.
+ * Settings service
  */
 export class SettingsService {
   /**
    * Gets skymp client settings snapshot if it exists
    */
-  public get skympClientSettings(): SkympClientSettings | null {
-    const settings = sp.settings["skymp5-client"];
-    if (!settings) return null;
-    return new SkympClientSettings(
-      settings["server-ip"] as string,
-      settings["server-port"] as number,
-      settings["gameData"] as SkympClientGameDataSettings,
-      settings["show-me"] as boolean,
-      settings["show-clones"] as boolean,
-    )
+  public get skympClientSettings(): SkympClientSettings {
+    const settings = sp.settings["skymp5-client"] ?? {};
+    const gameDataSettings = settings["gameData"] as any ?? {};
+    return {
+      clientVersion: pckg.version,
+      skyrimPlatformVersion: typeof sp.getPlatformVersion === "function" ? sp.getPlatformVersion() : null,
+      debug: settings["debug"] as boolean ?? true,
+      serverIp: settings["server-ip"] as string,
+      serverPort: settings["server-port"] as number,
+      gameData: {
+        profileId: gameDataSettings["profileId"] as number,
+      },
+      showMe: settings["show-me"] as boolean,
+      showClones: settings["show-clones"] as boolean,
+    };
   }
 
   /**
@@ -25,7 +31,7 @@ export class SettingsService {
    */
   public get skympUiUrl(): string | null {
     const settings = this.skympClientSettings;
-    if (!settings?.serverIp || !settings?.serverPort) return null;
+    if (!settings.serverIp || !settings.serverPort) return null;
     const port = settings.serverPort === 7777 ? 3000 : settings.serverPort + 1;
     return `http://${settings.serverIp}:${port}/ui/index.html`;
   }
