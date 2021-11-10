@@ -1,13 +1,11 @@
 import * as sp from "skyrimPlatform";
-import { ConnectionState, MsgType, NetMessageType } from '../models/networkMessages';
-import { EventEmitter } from './../common/types';
+import { NetMessageType, NetMessageToIface, NetMessageTypeToIface } from '../models/networkMessages';
+import { EventEmitter, ConnectionState, IOEventEmitter } from './../common/types';
 
 /**
  * Represents a service interface
  */
-export interface Service {
-  update(dt: number): void;
-}
+export interface Service { }
 
 /**
  * Ingame browser interface
@@ -43,17 +41,17 @@ export interface SkympClientService extends Service {
   /**
    * Emits connection state changing
    */
-  get onConnectionStateChanged(): EventEmitter<"", ConnectionState>;
+  get onConnectionStateChanged(): EventEmitter<"connectionStateChanged", ConnectionState>;
 
   /**
    * Emits sorted message from the server
    */
-  get onMessageReceived(): EventEmitter<MsgType | string, NetMessageType>;
+  get onMessageReceived(): IOEventEmitter<NetMessageTypeToIface>;
 
   /**
    * Triggers when an error occures
    */
-  get onError(): EventEmitter<"", Error>;
+  get onError(): EventEmitter<"error", Error>;
 
   /**
    * Tries to connect to the server

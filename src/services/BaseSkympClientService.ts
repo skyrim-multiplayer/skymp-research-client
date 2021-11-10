@@ -1,9 +1,10 @@
 import * as sp from "skyrimPlatform";
 import { BaseEventEmitter } from '../common/BaseEventEmitter';
-import { EventEmitter } from '../common/types';
-import { ConnectionState, MsgType, NetMessageType } from '../models/networkMessages';
+import { EventEmitter, ConnectionState, IOEventEmitter } from '../common/types';
+import { NetMessageToIface, NetMessageType, NetMessageTypeToIface } from '../models/networkMessages';
 import { SettingsService } from './SettingsService';
 import { SkympClientService } from './types';
+import { NeverError } from './../errors/NeverError';
 
 /**
  * Server communication service
@@ -16,21 +17,21 @@ export class BaseSkympClientService implements SkympClientService {
   }
 
   private _mpClientPlugin = sp.mpClientPlugin;
-  private _onConnectionStateChangedEmitter = new BaseEventEmitter<"", ConnectionState>();
-  private _onErrorEmitter = new BaseEventEmitter<"", Error>();
-  private _onMessageReceiveEmitter = new BaseEventEmitter<MsgType | string, NetMessageType>();
+  private _onConnectionStateChangedEmitter = new BaseEventEmitter<"connectionStateChanged", ConnectionState>();
+  private _onErrorEmitter = new BaseEventEmitter<"error", Error>();
+  private _onMessageReceiveEmitter = new BaseEventEmitter<NetMessageType, any>();
 
   public ignoreIncomingMessages: boolean = false;
 
-  public get onConnectionStateChanged(): EventEmitter<"", ConnectionState> {
+  public get onConnectionStateChanged(): EventEmitter<"connectionStateChanged", ConnectionState> {
     return this._onConnectionStateChangedEmitter;
   }
 
-  public get onMessageReceived(): EventEmitter<string | MsgType, NetMessageType> {
+  public get onMessageReceived(): IOEventEmitter<NetMessageTypeToIface> {
     return this._onMessageReceiveEmitter;
   }
 
-  public get onError(): EventEmitter<"", Error> {
+  public get onError(): EventEmitter<"error", Error> {
     return this._onErrorEmitter;
   }
 
@@ -53,19 +54,17 @@ export class BaseSkympClientService implements SkympClientService {
     this._mpClientPlugin.send(JSON.stringify(message), reliable);
   }
 
-  public update(dt: number): void { }
-
   private handlePacket(packetType: sp.PacketType, jsonContent: string, error: string) {
     switch (packetType) {
       case "connectionAccepted":
-        this._onConnectionStateChangedEmitter.emit("", "connected");
+        this._onConnectionStateChangedEmitter.emit("connectionStateChanged", "connected");
         break;
       case "connectionDenied":
       case "connectionFailed":
-        this._onErrorEmitter.emit("", new Error(packetType));
+        this._onErrorEmitter.emit("error", new Error(packetType));
         break;
       case "disconnect":
-        this._onConnectionStateChangedEmitter.emit("", "disconnected");
+        this._onConnectionStateChangedEmitter.emit("connectionStateChanged", "disconnected");
         break;
       case "message":
         if (this.ignoreIncomingMessages === true) return;
@@ -73,7 +72,7 @@ export class BaseSkympClientService implements SkympClientService {
         //this._onMessageReceiveEmitter.emit()
         break;
       default:
-        this._onErrorEmitter.emit("", new Error(`Received unknown packet type = "${packetType}"`))
+        this._onErrorEmitter.emit("error", new Error(`[${new NeverError(packetType).message}]: Received unknown packet type = "${packetType}"`))
     }
   }
 }
