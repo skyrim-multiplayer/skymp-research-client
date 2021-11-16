@@ -1,12 +1,15 @@
 import * as sp from "skyrimPlatform";
-import { BrowserService } from "./types";
+import * as tk from "tick-knock";
+import { PeriodUpdater } from "./../common/PeriodUpdater";
 
-export class DefaultBrowserService implements BrowserService {
+/**
+ * Ingame browser system (Chromium Embedded Framework)
+ */
+export class CEFBrowserSystem extends tk.System {
+  private readonly _updater: PeriodUpdater = new PeriodUpdater(200, this.innerUpdate);
   private _visible: boolean = true;
   private _focused: boolean = false;
   private readonly _browser: sp.Browser = sp.browser;
-  private readonly _badMenuUpdatePeriodMs: number = 200;
-  private _badMenuUpdateLastDt: number = 0;
   private readonly _badMenuArray: sp.Menu[] = [
     sp.Menu.Barter,
     sp.Menu.Book,
@@ -41,16 +44,20 @@ export class DefaultBrowserService implements BrowserService {
     this._browser.setFocused(value);
   }
 
+  /**
+   * Load browser content by url (html, css, js)
+   * @param url 
+   */
   public loadByUrl(url: string): void {
     this._browser.loadUrl(url);
   }
 
   public update(dt: number): void {
-    this._badMenuUpdateLastDt += dt;
-    if (this._badMenuUpdateLastDt > this._badMenuUpdatePeriodMs) {
-      const isBadMenuOpened = this._badMenuArray.some(menu => sp.Ui.isMenuOpen(menu));
-      this._browser.setVisible(this._visible && isBadMenuOpened);
-      this._badMenuUpdateLastDt = 0;
-    }
+    this._updater.update(dt);
+  }
+
+  public innerUpdate(): void {
+    const isBadMenuOpened = this._badMenuArray.some(menu => sp.Ui.isMenuOpen(menu));
+    this._browser.setVisible(this._visible && isBadMenuOpened);
   }
 }

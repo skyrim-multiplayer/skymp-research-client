@@ -1,25 +1,22 @@
-/* Events */
+/* Commons */
 
-export interface IOMagic<I, O> {
+export interface IOMap<I, O> {
   input: I,
   output: O,
 }
 
-export type CallIOMagic<F extends IOMagic<any, any>, I extends F["input"]> = (F & { input: I })["output"];
+export type CallIOMap<F extends IOMap<any, any>, I extends F["input"]> = (F & { input: I })["output"];
 
-export type EventEmitterHandler<F extends IOMagic<any, any>, T> = (value: CallIOMagic<F, T>) => void;
+/* Events */
 
-export interface IOEventEmitter<F extends IOMagic<any, any>> {
+export type EventEmitterHandler<F extends IOMap<any, any>, T> = (value: CallIOMap<F, T>) => void;
+
+export interface IOEventEmitter<F extends IOMap<any, any>> {
   addListener<T extends F["input"]>(eventName: T, handler: EventEmitterHandler<F, T>): this;
   removeListener<T extends F["input"]>(eventName: T, handler: EventEmitterHandler<F, T>): this;
 }
 
-export interface EventEmitter<TEvent, TValue> extends IOEventEmitter<IOMagic<TEvent, TValue>> { };
-
-// export interface EventEmitter<TEvent, TValue> {
-//   addListener(eventName: TEvent, handler: EventEmitterHandler<TValue>): void;
-//   removeListener(eventName: TEvent, handler: EventEmitterHandler<TValue>): void
-// }
+export interface EventEmitter<TEvent, TValue> extends IOEventEmitter<IOMap<TEvent, TValue>> { };
 
 /** Settings **/
 

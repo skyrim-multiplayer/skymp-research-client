@@ -1,4 +1,13 @@
-import { IOMagic } from './../common/types';
+import { IOMap } from '../common/types';
+import {
+  WorldPositionModel,
+  MovementModel,
+  AnimationModel,
+  AppearanceModel,
+  InventoryModel,
+  EquipmentModel,
+  ActorValuesModel,
+} from './types';
 
 /* Messages with number type */
 
@@ -26,25 +35,25 @@ export enum NumberMessageType {
 export interface UpdateMovementMessage {
   t: NumberMessageType.UpdateMovement;
   idx: number;
-  data: Movement;
+  data: MovementModel;
 }
 
 export interface UpdateAnimationMessage {
   t: NumberMessageType.UpdateAnimation;
   idx: number;
-  data: Animation;
+  data: AnimationModel;
 }
 
 export interface UpdateAppearanceMessage {
   t: NumberMessageType.UpdateAppearance;
   idx: number;
-  data: Appearance;
+  data: AppearanceModel;
 }
 
 export interface UpdateEquipmentMessage {
   t: NumberMessageType.UpdateEquipment;
   idx: number;
-  data: Equipment;
+  data: EquipmentModel;
 }
 
 export interface UpdatePropertyMessage {
@@ -56,7 +65,7 @@ export interface UpdatePropertyMessage {
 
 export interface ChangeValuesMessage {
   t: NumberMessageType.ChangeValues;
-  data: ActorValues;
+  data: ActorValuesModel;
 }
 
 export interface RespawnMessage {
@@ -83,7 +92,7 @@ export enum StringMessageType {
 
 export interface SetInventory {
   type: StringMessageType.SetInventory;
-  inventory: Inventory;
+  inventory: InventoryModel;
 }
 
 export interface OpenContainer {
@@ -102,11 +111,11 @@ export interface CreateActorMessage {
   type: StringMessageType.CreateActor;
   idx: number;
   refrId?: number;
-  transform: Transform;
+  transform: WorldPositionModel;
   isMe: boolean;
-  appearance?: Appearance;
-  equipment?: Equipment;
-  inventory?: Inventory;
+  appearance?: AppearanceModel;
+  equipment?: EquipmentModel;
+  inventory?: InventoryModel;
   baseId?: number;
   props?: Record<string, unknown>;
 }
@@ -205,6 +214,6 @@ export type NetMessageToIface<T extends NetMessageType> =
   // Restrict usage if can't convert
   never;
 
-export interface NetMessageTypeToIface extends IOMagic<NetMessageType, NetMessageIface> {
+export interface NetMessageTypeToIface extends IOMap<NetMessageType, NetMessageIface> {
   output: NetMessageToIface<this["input"]>
 }

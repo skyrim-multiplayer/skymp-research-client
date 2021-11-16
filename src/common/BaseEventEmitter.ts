@@ -1,11 +1,11 @@
-import { EventEmitter, EventEmitterHandler, IOMagic } from './types';
+import { EventEmitter, EventEmitterHandler, IOMap } from './types';
 
 export class BaseEventEmitter<TEvent, TValue> implements EventEmitter<TEvent, TValue> {
-  private _eventHandlers = new Map<TEvent, Set<EventEmitterHandler<IOMagic<TEvent, TValue>, TValue>>>();
+  private _eventHandlers = new Map<TEvent, Set<EventEmitterHandler<IOMap<TEvent, TValue>, TValue>>>();
 
-  public addListener<T extends TEvent>(eventName: T, handler: EventEmitterHandler<IOMagic<TEvent, TValue>, T>): this {
+  public addListener<T extends TEvent>(eventName: T, handler: EventEmitterHandler<IOMap<TEvent, TValue>, T>): this {
     if (!this._eventHandlers.has(eventName)) {
-      const handlers = new Set<EventEmitterHandler<IOMagic<TEvent, TValue>, TValue>>().add(handler);
+      const handlers = new Set<EventEmitterHandler<IOMap<TEvent, TValue>, TValue>>().add(handler);
       this._eventHandlers.set(eventName, handlers);
     } else {
       this._eventHandlers.get(eventName)?.add(handler);
@@ -13,7 +13,7 @@ export class BaseEventEmitter<TEvent, TValue> implements EventEmitter<TEvent, TV
     return this;
   }
 
-  public removeListener<T extends TEvent>(eventName: T, handler: EventEmitterHandler<IOMagic<TEvent, TValue>, T>): this {
+  public removeListener<T extends TEvent>(eventName: T, handler: EventEmitterHandler<IOMap<TEvent, TValue>, T>): this {
     if (!this._eventHandlers.has(eventName)) return this;
     this._eventHandlers.get(eventName)?.delete(handler);
     return this;
