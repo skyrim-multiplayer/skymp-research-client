@@ -11,12 +11,12 @@ export type CallIOMap<F extends IOMap<any, any>, I extends F["input"]> = (F & { 
 
 export type EventEmitterHandler<F extends IOMap<any, any>, T> = (value: CallIOMap<F, T>) => void;
 
-export interface IOEventEmitter<F extends IOMap<any, any>> {
+export interface IOMapEventEmitter<F extends IOMap<any, any>> {
   addListener<T extends F["input"]>(eventName: T, handler: EventEmitterHandler<F, T>): this;
   removeListener<T extends F["input"]>(eventName: T, handler: EventEmitterHandler<F, T>): this;
 }
 
-export interface EventEmitter<TEvent, TValue> extends IOEventEmitter<IOMap<TEvent, TValue>> { };
+export interface EventEmitter<TEvent, TValue> extends IOMapEventEmitter<IOMap<TEvent, TValue>> { };
 
 /** Settings **/
 

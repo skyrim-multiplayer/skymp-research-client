@@ -6,6 +6,7 @@ import { CEFBrowserSystem } from './systems/CEFBrowserSystem';
 import { SettingsService } from "./services/SettingsService";
 import { BaseSkympClientService } from './services/BaseSkympClientService';
 import { SkympClientService } from "./services/types";
+import { NumberMessageType, StringMessageType } from "./models/networkMessages";
 
 let engine = new tk.Engine();
 let settingsService = new SettingsService();
@@ -22,3 +23,12 @@ sp.on("update", () => {
   engine.update(Date.now() - engine_dt);
   engine_dt = Date.now();
 });
+
+/* Tests */
+skympClientService.onConnectionStateChanged.addListener("connectionStateChanged", (state) => sp.once("tick", () => {
+  sp.printConsole(`Connection state changed to "${state}"`);
+  skympClientService.disconnect();
+}));
+skympClientService.onError.addListener("error", (error) => sp.once("tick", () => sp.printConsole(`Error: ${error.message}`)));
+skympClientService.onMessageReceived.addListener(StringMessageType.CreateActor, (msg) => sp.once("tick", () => sp.printConsole(`SERVER: ${msg.type} ${JSON.stringify(msg)}`)));
+skympClientService.connect();

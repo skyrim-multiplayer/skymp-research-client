@@ -16,7 +16,7 @@ export interface AnimationVariables {
   isBlocking: boolean;
   isWeapDrawn: boolean;
   isDead: boolean;
-  healthPercentage: number; // todo: Remove this? It doesn't seem to be in use by the server
+  healthPercentage: number;
   lookAt?: NiPoint3;
 }
 

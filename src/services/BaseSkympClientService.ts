@@ -1,7 +1,7 @@
 import * as sp from "skyrimPlatform";
 import { BaseEventEmitter } from '../common/BaseEventEmitter';
-import { EventEmitter, ConnectionState, IOEventEmitter } from '../common/types';
-import { NetMessageToIface, NetMessageType, NetMessageTypeToIface } from '../models/networkMessages';
+import { EventEmitter, ConnectionState, IOMapEventEmitter } from '../common/types';
+import { NetMessageType, NetMessageTypeToIface, parseNetMessage } from '../models/networkMessages';
 import { SettingsService } from './SettingsService';
 import { SkympClientService } from './types';
 import { NeverError } from './../errors/NeverError';
@@ -11,15 +11,19 @@ import { NeverError } from './../errors/NeverError';
  */
 export class BaseSkympClientService implements SkympClientService {
   constructor(
-    private _settingsService: SettingsService,
+    private readonly _settingsService: SettingsService,
   ) {
-    sp.on("tick", () => this._mpClientPlugin.tick(this.handlePacket));
+    sp.on("tick", () =>
+      this._mpClientPlugin.tick((packetType: sp.PacketType, jsonContent: string, error: string) =>
+        this.handlePacket(packetType, jsonContent, error)
+      )
+    );
   }
 
-  private _mpClientPlugin = sp.mpClientPlugin;
-  private _onConnectionStateChangedEmitter = new BaseEventEmitter<"connectionStateChanged", ConnectionState>();
-  private _onErrorEmitter = new BaseEventEmitter<"error", Error>();
-  private _onMessageReceiveEmitter = new BaseEventEmitter<NetMessageType, any>();
+  private readonly _mpClientPlugin = sp.mpClientPlugin;
+  private readonly _onConnectionStateChangedEmitter = new BaseEventEmitter<"connectionStateChanged", ConnectionState>();
+  private readonly _onErrorEmitter = new BaseEventEmitter<"error", Error>();
+  private readonly _onMessageReceiveEmitter = new BaseEventEmitter<NetMessageType, any>();
 
   public ignoreIncomingMessages: boolean = false;
 
@@ -27,7 +31,7 @@ export class BaseSkympClientService implements SkympClientService {
     return this._onConnectionStateChangedEmitter;
   }
 
-  public get onMessageReceived(): IOEventEmitter<NetMessageTypeToIface> {
+  public get onMessageReceived(): IOMapEventEmitter<NetMessageTypeToIface> {
     return this._onMessageReceiveEmitter;
   }
 
@@ -45,8 +49,9 @@ export class BaseSkympClientService implements SkympClientService {
   }
 
   public disconnect(): void {
-    if (this._mpClientPlugin.isConnected() === false) return;
     this._mpClientPlugin.destroyClient();
+    // skyrim platform's "mpClientPlugin" does not call tickHandler with disconnect packet type if "destroyClient" function was called.
+    this._onConnectionStateChangedEmitter.emit("connectionStateChanged", "disconnected");
   }
 
   public send(message: Record<string, unknown>, reliable: boolean): void {
@@ -61,15 +66,20 @@ export class BaseSkympClientService implements SkympClientService {
         break;
       case "connectionDenied":
       case "connectionFailed":
-        this._onErrorEmitter.emit("error", new Error(packetType));
+        this._onErrorEmitter.emit("error", new Error(error));
         break;
       case "disconnect":
         this._onConnectionStateChangedEmitter.emit("connectionStateChanged", "disconnected");
         break;
       case "message":
         if (this.ignoreIncomingMessages === true) return;
-        // todo: parse packet and it's content for emit event
-        //this._onMessageReceiveEmitter.emit()
+        try {
+          var parsedMsg = parseNetMessage(jsonContent);
+        } catch (e: any) {
+          this._onErrorEmitter.emit("error", e instanceof Error ? e : new Error(e));
+          return;
+        }
+        this._onMessageReceiveEmitter.emit(parsedMsg.msgType, parsedMsg.msg);
         break;
       default:
         this._onErrorEmitter.emit("error", new Error(`[${new NeverError(packetType).message}]: Received unknown packet type = "${packetType}"`))

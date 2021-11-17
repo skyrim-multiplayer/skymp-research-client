@@ -1,4 +1,5 @@
 import { IOMap } from '../common/types';
+import { nameOf } from '../common/utils';
 import {
   WorldPositionModel,
   MovementModel,
@@ -32,43 +33,47 @@ export enum NumberMessageType {
   Respawn = 18,
 }
 
-export interface UpdateMovementMessage {
+export interface MessageWithT {
+  t: NumberMessageType;
+}
+
+export interface UpdateMovementMessage extends MessageWithT {
   t: NumberMessageType.UpdateMovement;
   idx: number;
   data: MovementModel;
 }
 
-export interface UpdateAnimationMessage {
+export interface UpdateAnimationMessage extends MessageWithT {
   t: NumberMessageType.UpdateAnimation;
   idx: number;
   data: AnimationModel;
 }
 
-export interface UpdateAppearanceMessage {
+export interface UpdateAppearanceMessage extends MessageWithT {
   t: NumberMessageType.UpdateAppearance;
   idx: number;
   data: AppearanceModel;
 }
 
-export interface UpdateEquipmentMessage {
+export interface UpdateEquipmentMessage extends MessageWithT {
   t: NumberMessageType.UpdateEquipment;
   idx: number;
   data: EquipmentModel;
 }
 
-export interface UpdatePropertyMessage {
+export interface UpdatePropertyMessage extends MessageWithT {
   t: NumberMessageType.UpdateProperty;
   idx: number;
   data: unknown;
   propName: string;
 }
 
-export interface ChangeValuesMessage {
+export interface ChangeValuesMessage extends MessageWithT {
   t: NumberMessageType.ChangeValues;
   data: ActorValuesModel;
 }
 
-export interface RespawnMessage {
+export interface RespawnMessage extends MessageWithT {
   t: NumberMessageType.Respawn;
   tTeleport: Teleport,
   tChangeValues: ChangeValuesMessage,
@@ -90,24 +95,28 @@ export enum StringMessageType {
   UpdateGamemodeData = "updateGamemodeData",
 }
 
-export interface SetInventory {
+export interface MessageWithType {
+  type: StringMessageType;
+}
+
+export interface SetInventory extends MessageWithType {
   type: StringMessageType.SetInventory;
   inventory: InventoryModel;
 }
 
-export interface OpenContainer {
+export interface OpenContainer extends MessageWithType {
   type: StringMessageType.OpenContainer;
   target: number;
 }
 
-export interface Teleport {
+export interface Teleport extends MessageWithType {
   type: StringMessageType.Teleport;
   pos: number[];
   rot: number[];
   worldOrCell: number;
 }
 
-export interface CreateActorMessage {
+export interface CreateActorMessage extends MessageWithType {
   type: StringMessageType.CreateActor;
   idx: number;
   refrId?: number;
@@ -120,32 +129,32 @@ export interface CreateActorMessage {
   props?: Record<string, unknown>;
 }
 
-export interface DestroyActorMessage {
+export interface DestroyActorMessage extends MessageWithType {
   type: StringMessageType.DestroyActor;
   idx: number;
 }
 
-export interface SetRaceMenuOpenMessage {
+export interface SetRaceMenuOpenMessage extends MessageWithType {
   type: StringMessageType.SetRaceMenuOpen;
   open: boolean;
 }
 
-export interface CustomPacket {
+export interface CustomPacket extends MessageWithType {
   type: StringMessageType.CustomPacket;
   content: Record<string, unknown>;
 }
 
-export interface HostStartMessage {
+export interface HostStartMessage extends MessageWithType {
   type: StringMessageType.HostStart;
   target: number;
 }
 
-export interface HostStopMessage {
+export interface HostStopMessage extends MessageWithType {
   type: StringMessageType.HostStop;
   target: number;
 }
 
-export interface UpdateGamemodeDataMessage {
+export interface UpdateGamemodeDataMessage extends MessageWithType {
   type: StringMessageType.UpdateGamemodeData;
   eventSources: Record<string, string>;
   updateOwnerFunctions: Record<string, string>;
@@ -216,4 +225,12 @@ export type NetMessageToIface<T extends NetMessageType> =
 
 export interface NetMessageTypeToIface extends IOMap<NetMessageType, NetMessageIface> {
   output: NetMessageToIface<this["input"]>
+}
+
+export const parseNetMessage = <T extends NetMessageType>(jsonMesssage: string): { msgType: T, msg: NetMessageToIface<T> } => {
+  const msg = JSON.parse(jsonMesssage);
+  return {
+    msgType: (msg[nameOf<MessageWithT>("t")] || msg[nameOf<MessageWithType>("type")]) as T,
+    msg: msg,
+  };
 }

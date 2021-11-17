@@ -1,7 +1,7 @@
 import { EventEmitter, EventEmitterHandler, IOMap } from './types';
 
 export class BaseEventEmitter<TEvent, TValue> implements EventEmitter<TEvent, TValue> {
-  private _eventHandlers = new Map<TEvent, Set<EventEmitterHandler<IOMap<TEvent, TValue>, TValue>>>();
+  private readonly _eventHandlers = new Map<TEvent, Set<EventEmitterHandler<IOMap<TEvent, TValue>, TValue>>>();
 
   public addListener<T extends TEvent>(eventName: T, handler: EventEmitterHandler<IOMap<TEvent, TValue>, T>): this {
     if (!this._eventHandlers.has(eventName)) {

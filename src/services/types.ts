@@ -1,6 +1,6 @@
 import * as sp from "skyrimPlatform";
-import { NetMessageType, NetMessageToIface, NetMessageTypeToIface } from '../models/networkMessages';
-import { EventEmitter, ConnectionState, IOEventEmitter } from './../common/types';
+import { NetMessageTypeToIface } from '../models/networkMessages';
+import { EventEmitter, ConnectionState, IOMapEventEmitter } from './../common/types';
 
 /**
  * Represents a service interface
@@ -25,7 +25,7 @@ export interface SkympClientService extends Service {
   /**
    * Emits sorted message from the server
    */
-  get onMessageReceived(): IOEventEmitter<NetMessageTypeToIface>;
+  get onMessageReceived(): IOMapEventEmitter<NetMessageTypeToIface>;
 
   /**
    * Triggers when an error occures
