@@ -75,7 +75,7 @@ export interface ChangeValuesMessage extends MessageWithNumberType {
 
 export interface RespawnMessage extends MessageWithNumberType {
   t: NumberMessageType.Respawn;
-  tTeleport: Teleport,
+  tTeleport: TeleportMessage,
   tChangeValues: ChangeValuesMessage,
   tIsDead: UpdatePropertyMessage,
 }
@@ -99,17 +99,17 @@ export interface MessageWithStringType {
   type: StringMessageType;
 }
 
-export interface SetInventory extends MessageWithStringType {
+export interface SetInventoryMessage extends MessageWithStringType {
   type: StringMessageType.SetInventory;
   inventory: InventoryModel;
 }
 
-export interface OpenContainer extends MessageWithStringType {
+export interface OpenContainerMessage extends MessageWithStringType {
   type: StringMessageType.OpenContainer;
   target: number;
 }
 
-export interface Teleport extends MessageWithStringType {
+export interface TeleportMessage extends MessageWithStringType {
   type: StringMessageType.Teleport;
   pos: number[];
   rot: number[];
@@ -144,6 +144,32 @@ export interface CustomPacket extends MessageWithStringType {
   content: Record<string, unknown>;
 }
 
+export interface BrowserTokenCustomPacket extends CustomPacket {
+  type: StringMessageType.CustomPacket;
+  content: {
+    customPacketType: "browserToken";
+    token: string;
+  }
+}
+
+export interface LoginWithSkympIOCustomPacket extends CustomPacket {
+  type: StringMessageType.CustomPacket;
+  content: {
+    customPacketType: "loginWithSkympIo";
+    gameData: {
+      profileId: number;
+    }
+  }
+}
+
+// todo: This type appears only in the client. Delete?
+export interface LoginRequiredCustomPacket extends CustomPacket {
+  type: StringMessageType.CustomPacket;
+  content: {
+    customPacketType: "loginRequired";
+  }
+}
+
 export interface HostStartMessage extends MessageWithStringType {
   type: StringMessageType.HostStart;
   target: number;
@@ -175,9 +201,9 @@ export type NetMessageIface =
   ChangeValuesMessage |
   RespawnMessage |
   // Type 2
-  SetInventory |
-  OpenContainer |
-  Teleport |
+  SetInventoryMessage |
+  OpenContainerMessage |
+  TeleportMessage |
   CreateActorMessage |
   DestroyActorMessage |
   SetRaceMenuOpenMessage |
@@ -210,9 +236,9 @@ export type NetMessageToIface<T extends NetMessageType> =
   T extends NumberMessageType.OnHit ? never :
   T extends NumberMessageType.Respawn ? RespawnMessage :
   // Type 2
-  T extends StringMessageType.SetInventory ? SetInventory :
-  T extends StringMessageType.OpenContainer ? OpenContainer :
-  T extends StringMessageType.Teleport ? Teleport :
+  T extends StringMessageType.SetInventory ? SetInventoryMessage :
+  T extends StringMessageType.OpenContainer ? OpenContainerMessage :
+  T extends StringMessageType.Teleport ? TeleportMessage :
   T extends StringMessageType.CreateActor ? CreateActorMessage :
   T extends StringMessageType.DestroyActor ? DestroyActorMessage :
   T extends StringMessageType.SetRaceMenuOpen ? SetRaceMenuOpenMessage :
@@ -227,6 +253,46 @@ export interface NetMessageTypeToIface extends IOMap<NetMessageType, NetMessageI
   output: NetMessageToIface<this["input"]>
 }
 
+const stringMessageTypeValues = Object.values(StringMessageType);
+/**
+ * Parse network message with check for unknown message
+ * 
+ * If message type NOT in {@link NetMessageType} then return null message type
+ * 
+ * @param jsonMesssage 
+ * @returns 
+ */
+export const parseNetMessageStrict = <T extends NetMessageType>(jsonMesssage: string): { msgType: T | null, msg: NetMessageToIface<T> } => {
+  const msg = JSON.parse(jsonMesssage);
+
+  let messagePropName: string = nameOf<MessageWithNumberType>("t");
+  if (msg[messagePropName] && msg[messagePropName] in NumberMessageType) {
+    return {
+      msgType: msg[messagePropName] as T,
+      msg: msg,
+    }
+  }
+
+  messagePropName = nameOf<MessageWithStringType>("type");
+  if (msg[messagePropName] && stringMessageTypeValues.includes(msg[messagePropName])) {
+    return {
+      msgType: msg[messagePropName] as T,
+      msg: msg,
+    }
+  }
+
+  return {
+    msgType: null,
+    msg: msg,
+  }
+}
+
+/**
+ * Parse network message with no check for unknown message. Use if you are sure that you will not receive an unknown message. This version is faster then {@link parseNetMessageStrict} 
+ * @example You can receive "{ t: 100500, ... }" message which type are unknown, but the function returns { msgType: 100500, ... }
+ * @param jsonMesssage 
+ * @returns 
+ */
 export const parseNetMessage = <T extends NetMessageType>(jsonMesssage: string): { msgType: T, msg: NetMessageToIface<T> } => {
   const msg = JSON.parse(jsonMesssage);
   return {

@@ -1,16 +1,19 @@
+
 import * as sp from "skyrimPlatform";
 import * as tk from "tick-knock";
 
 import { Game } from '../common/types';
 import { GameBuilder } from './types';
+import { NumberMessageType, StringMessageType } from "../models/networkMessages";
+
+import { SettingsService } from "../services/SettingsService";
+import { BaseSkympClientService } from '../services/BaseSkympClientService';
+import { SkympClientService } from "../services/types";
 
 import { WorldCleanerSystem } from '../systems/WorldCleanerSystem';
 import { TimeSystem } from '../systems/TimeSystem';
 import { CEFBrowserSystem } from '../systems/CEFBrowserSystem';
-import { SettingsService } from "../services/SettingsService";
-import { BaseSkympClientService } from '../services/BaseSkympClientService';
-import { SkympClientService } from "../services/types";
-import { NumberMessageType, StringMessageType } from "../models/networkMessages";
+import { WeatherSystem } from './../systems/WeatherSystem';
 
 export class SkympClientGameBuilder implements GameBuilder {
   Build(): Game {
@@ -34,6 +37,7 @@ const engine = new tk.Engine();
 engine.addSystem(new TimeSystem(), 1);
 engine.addSystem(new WorldCleanerSystem(), 2);
 engine.addSystem(new CEFBrowserSystem(), 3);
+engine.addSystem(new WeatherSystem(), 4);
 
 /* Game update */
 let engine_dt: number = Date.now();

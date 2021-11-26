@@ -43,7 +43,7 @@ export interface SkympClientService extends Service {
   disconnect: () => void;
 
   /**
-   * Sends message to the server
+   * Sends a message to the server
    */
   send: (message: Record<string, unknown>, reliable: boolean) => void;
 }

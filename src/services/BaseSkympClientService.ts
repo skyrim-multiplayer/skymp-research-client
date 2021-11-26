@@ -1,10 +1,11 @@
 import * as sp from "skyrimPlatform";
 import { BaseEventEmitter } from '../common/BaseEventEmitter';
 import { EventEmitter, ConnectionState, IOMapEventEmitter } from '../common/types';
-import { NetMessageType, NetMessageTypeToIface, parseNetMessage } from '../models/networkMessages';
+import { NetMessageType, NetMessageTypeToIface, parseNetMessageStrict } from '../models/networkMessages';
 import { SettingsService } from './SettingsService';
 import { SkympClientService } from './types';
 import { NeverError } from './../errors/NeverError';
+import { UnknownMessageError } from "../errors/UnknownMessageError";
 
 /**
  * Server communication service
@@ -82,12 +83,16 @@ export class BaseSkympClientService implements SkympClientService {
         }
 
         try {
-          var parsedMsg = parseNetMessage(jsonContent);
+          var parsedMsg = parseNetMessageStrict(jsonContent);
         } catch (e: any) {
           this._onErrorEmitter.emit("error", e instanceof Error ? e : new Error(e));
           return;
         }
-        this._onMessageReceiveEmitter.emit(parsedMsg.msgType, parsedMsg.msg);
+        if (parsedMsg?.msgType) {
+          this._onMessageReceiveEmitter.emit(parsedMsg.msgType, parsedMsg.msg);
+        } else {
+          this._onErrorEmitter.emit("error", new UnknownMessageError(jsonContent, "Received unknown message"));
+        }
         break;
       default:
         this._onErrorEmitter.emit("error", new Error(`[${new NeverError(packetType).message}]: Received unknown packet type = "${packetType}"`))
