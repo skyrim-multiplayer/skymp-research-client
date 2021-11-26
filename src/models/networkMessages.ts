@@ -33,47 +33,47 @@ export enum NumberMessageType {
   Respawn = 18,
 }
 
-export interface MessageWithT {
+export interface MessageWithNumberType {
   t: NumberMessageType;
 }
 
-export interface UpdateMovementMessage extends MessageWithT {
+export interface UpdateMovementMessage extends MessageWithNumberType {
   t: NumberMessageType.UpdateMovement;
   idx: number;
   data: MovementModel;
 }
 
-export interface UpdateAnimationMessage extends MessageWithT {
+export interface UpdateAnimationMessage extends MessageWithNumberType {
   t: NumberMessageType.UpdateAnimation;
   idx: number;
   data: AnimationModel;
 }
 
-export interface UpdateAppearanceMessage extends MessageWithT {
+export interface UpdateAppearanceMessage extends MessageWithNumberType {
   t: NumberMessageType.UpdateAppearance;
   idx: number;
   data: AppearanceModel;
 }
 
-export interface UpdateEquipmentMessage extends MessageWithT {
+export interface UpdateEquipmentMessage extends MessageWithNumberType {
   t: NumberMessageType.UpdateEquipment;
   idx: number;
   data: EquipmentModel;
 }
 
-export interface UpdatePropertyMessage extends MessageWithT {
+export interface UpdatePropertyMessage extends MessageWithNumberType {
   t: NumberMessageType.UpdateProperty;
   idx: number;
   data: unknown;
   propName: string;
 }
 
-export interface ChangeValuesMessage extends MessageWithT {
+export interface ChangeValuesMessage extends MessageWithNumberType {
   t: NumberMessageType.ChangeValues;
   data: ActorValuesModel;
 }
 
-export interface RespawnMessage extends MessageWithT {
+export interface RespawnMessage extends MessageWithNumberType {
   t: NumberMessageType.Respawn;
   tTeleport: Teleport,
   tChangeValues: ChangeValuesMessage,
@@ -95,28 +95,28 @@ export enum StringMessageType {
   UpdateGamemodeData = "updateGamemodeData",
 }
 
-export interface MessageWithType {
+export interface MessageWithStringType {
   type: StringMessageType;
 }
 
-export interface SetInventory extends MessageWithType {
+export interface SetInventory extends MessageWithStringType {
   type: StringMessageType.SetInventory;
   inventory: InventoryModel;
 }
 
-export interface OpenContainer extends MessageWithType {
+export interface OpenContainer extends MessageWithStringType {
   type: StringMessageType.OpenContainer;
   target: number;
 }
 
-export interface Teleport extends MessageWithType {
+export interface Teleport extends MessageWithStringType {
   type: StringMessageType.Teleport;
   pos: number[];
   rot: number[];
   worldOrCell: number;
 }
 
-export interface CreateActorMessage extends MessageWithType {
+export interface CreateActorMessage extends MessageWithStringType {
   type: StringMessageType.CreateActor;
   idx: number;
   refrId?: number;
@@ -129,32 +129,32 @@ export interface CreateActorMessage extends MessageWithType {
   props?: Record<string, unknown>;
 }
 
-export interface DestroyActorMessage extends MessageWithType {
+export interface DestroyActorMessage extends MessageWithStringType {
   type: StringMessageType.DestroyActor;
   idx: number;
 }
 
-export interface SetRaceMenuOpenMessage extends MessageWithType {
+export interface SetRaceMenuOpenMessage extends MessageWithStringType {
   type: StringMessageType.SetRaceMenuOpen;
   open: boolean;
 }
 
-export interface CustomPacket extends MessageWithType {
+export interface CustomPacket extends MessageWithStringType {
   type: StringMessageType.CustomPacket;
   content: Record<string, unknown>;
 }
 
-export interface HostStartMessage extends MessageWithType {
+export interface HostStartMessage extends MessageWithStringType {
   type: StringMessageType.HostStart;
   target: number;
 }
 
-export interface HostStopMessage extends MessageWithType {
+export interface HostStopMessage extends MessageWithStringType {
   type: StringMessageType.HostStop;
   target: number;
 }
 
-export interface UpdateGamemodeDataMessage extends MessageWithType {
+export interface UpdateGamemodeDataMessage extends MessageWithStringType {
   type: StringMessageType.UpdateGamemodeData;
   eventSources: Record<string, string>;
   updateOwnerFunctions: Record<string, string>;
@@ -230,7 +230,7 @@ export interface NetMessageTypeToIface extends IOMap<NetMessageType, NetMessageI
 export const parseNetMessage = <T extends NetMessageType>(jsonMesssage: string): { msgType: T, msg: NetMessageToIface<T> } => {
   const msg = JSON.parse(jsonMesssage);
   return {
-    msgType: (msg[nameOf<MessageWithT>("t")] || msg[nameOf<MessageWithType>("type")]) as T,
+    msgType: (msg[nameOf<MessageWithNumberType>("t")] || msg[nameOf<MessageWithStringType>("type")]) as T,
     msg: msg,
   };
 }

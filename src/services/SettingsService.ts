@@ -1,11 +1,12 @@
 import * as sp from "skyrimPlatform";
 import { SkympClientSettings } from './../common/types';
 import * as pckg from "./../../package.json";
+import { Service } from "./types";
 
 /**
  * Settings service
  */
-export class SettingsService {
+export class SettingsService implements Service {
   /**
    * Gets skymp client settings snapshot if it exists
    */

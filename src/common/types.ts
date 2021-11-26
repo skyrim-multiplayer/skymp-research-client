@@ -38,3 +38,20 @@ export interface SkympClientSettings {
 /* Networking */
 
 export type ConnectionState = "connected" | "disconnected";
+
+/* Game */
+
+/**
+ * General interface for a game management
+ */
+export interface Game {
+  /**
+   * Prepares to start and then launches the game
+   */
+  start(): void;
+
+  /**
+   * Stops the game
+   */
+  stop(): void;
+}

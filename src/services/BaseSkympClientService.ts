@@ -49,9 +49,12 @@ export class BaseSkympClientService implements SkympClientService {
   }
 
   public disconnect(): void {
+    const wasConnected = this._mpClientPlugin.isConnected();
     this._mpClientPlugin.destroyClient();
     // skyrim platform's "mpClientPlugin" does not call tickHandler with disconnect packet type if "destroyClient" function was called.
-    this._onConnectionStateChangedEmitter.emit("connectionStateChanged", "disconnected");
+    if (wasConnected) {
+      this._onConnectionStateChangedEmitter.emit("connectionStateChanged", "disconnected");
+    }
   }
 
   public send(message: Record<string, unknown>, reliable: boolean): void {
@@ -73,6 +76,11 @@ export class BaseSkympClientService implements SkympClientService {
         break;
       case "message":
         if (this.ignoreIncomingMessages === true) return;
+        if (!jsonContent || jsonContent.length === 0) {
+          this._onErrorEmitter.emit("error", error ? new Error(error) : new Error("Received empty message"));
+          return;
+        }
+
         try {
           var parsedMsg = parseNetMessage(jsonContent);
         } catch (e: any) {
