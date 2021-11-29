@@ -1,4 +1,4 @@
-import { IOMap } from '../common/types';
+import { CallIOMap, IOMap } from '../common/types';
 import { nameOf } from '../common/utils';
 import {
   WorldPositionModel,
@@ -33,47 +33,70 @@ export enum NumberMessageType {
   Respawn = 18,
 }
 
-export interface MessageWithNumberType {
+export interface NumberTypeMessage {
   t: NumberMessageType;
 }
 
-export interface UpdateMovementMessage extends MessageWithNumberType {
+export interface CustomPacket extends NumberTypeMessage {
+  t: NumberMessageType.CustomPacket;
+  content: Record<string, unknown>;
+}
+
+export interface BrowserTokenCustomPacket extends CustomPacket {
+  t: NumberMessageType.CustomPacket;
+  content: {
+    customPacketType: "browserToken";
+    token: string;
+  }
+}
+
+export interface LoginWithSkympIOCustomPacket extends CustomPacket {
+  t: NumberMessageType.CustomPacket;
+  content: {
+    customPacketType: "loginWithSkympIo";
+    gameData: {
+      profileId: number;
+    }
+  }
+}
+
+export interface UpdateMovementMessage extends NumberTypeMessage {
   t: NumberMessageType.UpdateMovement;
   idx: number;
   data: MovementModel;
 }
 
-export interface UpdateAnimationMessage extends MessageWithNumberType {
+export interface UpdateAnimationMessage extends NumberTypeMessage {
   t: NumberMessageType.UpdateAnimation;
   idx: number;
   data: AnimationModel;
 }
 
-export interface UpdateAppearanceMessage extends MessageWithNumberType {
+export interface UpdateAppearanceMessage extends NumberTypeMessage {
   t: NumberMessageType.UpdateAppearance;
   idx: number;
   data: AppearanceModel;
 }
 
-export interface UpdateEquipmentMessage extends MessageWithNumberType {
+export interface UpdateEquipmentMessage extends NumberTypeMessage {
   t: NumberMessageType.UpdateEquipment;
   idx: number;
   data: EquipmentModel;
 }
 
-export interface UpdatePropertyMessage extends MessageWithNumberType {
+export interface UpdatePropertyMessage extends NumberTypeMessage {
   t: NumberMessageType.UpdateProperty;
   idx: number;
   data: unknown;
   propName: string;
 }
 
-export interface ChangeValuesMessage extends MessageWithNumberType {
+export interface ChangeValuesMessage extends NumberTypeMessage {
   t: NumberMessageType.ChangeValues;
   data: ActorValuesModel;
 }
 
-export interface RespawnMessage extends MessageWithNumberType {
+export interface RespawnMessage extends NumberTypeMessage {
   t: NumberMessageType.Respawn;
   tTeleport: TeleportMessage,
   tChangeValues: ChangeValuesMessage,
@@ -95,28 +118,28 @@ export enum StringMessageType {
   UpdateGamemodeData = "updateGamemodeData",
 }
 
-export interface MessageWithStringType {
+export interface StringTypeMessage {
   type: StringMessageType;
 }
 
-export interface SetInventoryMessage extends MessageWithStringType {
+export interface SetInventoryMessage extends StringTypeMessage {
   type: StringMessageType.SetInventory;
   inventory: InventoryModel;
 }
 
-export interface OpenContainerMessage extends MessageWithStringType {
+export interface OpenContainerMessage extends StringTypeMessage {
   type: StringMessageType.OpenContainer;
   target: number;
 }
 
-export interface TeleportMessage extends MessageWithStringType {
+export interface TeleportMessage extends StringTypeMessage {
   type: StringMessageType.Teleport;
   pos: number[];
   rot: number[];
   worldOrCell: number;
 }
 
-export interface CreateActorMessage extends MessageWithStringType {
+export interface CreateActorMessage extends StringTypeMessage {
   type: StringMessageType.CreateActor;
   idx: number;
   refrId?: number;
@@ -129,58 +152,27 @@ export interface CreateActorMessage extends MessageWithStringType {
   props?: Record<string, unknown>;
 }
 
-export interface DestroyActorMessage extends MessageWithStringType {
+export interface DestroyActorMessage extends StringTypeMessage {
   type: StringMessageType.DestroyActor;
   idx: number;
 }
 
-export interface SetRaceMenuOpenMessage extends MessageWithStringType {
+export interface SetRaceMenuOpenMessage extends StringTypeMessage {
   type: StringMessageType.SetRaceMenuOpen;
   open: boolean;
 }
 
-export interface CustomPacket extends MessageWithStringType {
-  type: StringMessageType.CustomPacket;
-  content: Record<string, unknown>;
-}
-
-export interface BrowserTokenCustomPacket extends CustomPacket {
-  type: StringMessageType.CustomPacket;
-  content: {
-    customPacketType: "browserToken";
-    token: string;
-  }
-}
-
-export interface LoginWithSkympIOCustomPacket extends CustomPacket {
-  type: StringMessageType.CustomPacket;
-  content: {
-    customPacketType: "loginWithSkympIo";
-    gameData: {
-      profileId: number;
-    }
-  }
-}
-
-// todo: This type appears only in the client. Delete?
-export interface LoginRequiredCustomPacket extends CustomPacket {
-  type: StringMessageType.CustomPacket;
-  content: {
-    customPacketType: "loginRequired";
-  }
-}
-
-export interface HostStartMessage extends MessageWithStringType {
+export interface HostStartMessage extends StringTypeMessage {
   type: StringMessageType.HostStart;
   target: number;
 }
 
-export interface HostStopMessage extends MessageWithStringType {
+export interface HostStopMessage extends StringTypeMessage {
   type: StringMessageType.HostStop;
   target: number;
 }
 
-export interface UpdateGamemodeDataMessage extends MessageWithStringType {
+export interface UpdateGamemodeDataMessage extends StringTypeMessage {
   type: StringMessageType.UpdateGamemodeData;
   eventSources: Record<string, string>;
   updateOwnerFunctions: Record<string, string>;
@@ -193,6 +185,9 @@ export type NetMessageType = NumberMessageType | StringMessageType;
 
 export type NetMessageIface =
   // Type 1
+  CustomPacket |
+  BrowserTokenCustomPacket |
+  LoginWithSkympIOCustomPacket |
   UpdateMovementMessage |
   UpdateAnimationMessage |
   UpdateAppearanceMessage |
@@ -207,7 +202,6 @@ export type NetMessageIface =
   CreateActorMessage |
   DestroyActorMessage |
   SetRaceMenuOpenMessage |
-  CustomPacket |
   HostStartMessage |
   HostStopMessage |
   UpdateGamemodeDataMessage;
@@ -215,7 +209,7 @@ export type NetMessageIface =
 /**
  * Converts {@link NumberMessageType} OR {@link StringMessageType} to it's interface
  */
-export type NetMessageToIface<T extends NetMessageType> =
+export type NetMessageTypeToIface<T extends NetMessageType> =
   // Type 1
   T extends NumberMessageType.CustomPacket ? never :
   T extends NumberMessageType.UpdateMovement ? UpdateMovementMessage :
@@ -249,8 +243,49 @@ export type NetMessageToIface<T extends NetMessageType> =
   // Restrict usage if can't convert
   never;
 
-export interface NetMessageTypeToIface extends IOMap<NetMessageType, NetMessageIface> {
-  output: NetMessageToIface<this["input"]>
+export interface IONetMessageTypeToIface extends IOMap<NetMessageType, NetMessageIface> {
+  output: NetMessageTypeToIface<this["input"]>
+}
+
+export type AnyTypeMessage = NumberTypeMessage | StringTypeMessage;
+
+export type AnyTypeMessageToInnerType<C extends AnyTypeMessage> =
+  C extends NumberTypeMessage ? C["t"] :
+  C extends StringTypeMessage ? C["type"] :
+  never;
+
+/**
+ * Create a network message
+ * 
+ * Need to rework to auto detect message type which depends on @param msg content
+ *  
+ * @param msg 
+ * @returns 
+ */
+export const createNetMessageWithCheck = <
+  T extends AnyTypeMessage,
+  C extends AnyTypeMessageToInnerType<T>,
+  P extends IOMap<T, NetMessageTypeToIface<C>>
+>(msg: CallIOMap<P, T>): NetMessageIface => {
+  return msg;
+}
+
+/**
+ * Create a network message with the specified type
+ * @param msg 
+ * @returns 
+ */
+export const createNetMessage = <T extends NetMessageType>(msg: NetMessageTypeToIface<T>): NetMessageIface => {
+  return msg;
+}
+
+/**
+ * Create a network message with the specified interface
+ * @param msg 
+ * @returns 
+ */
+export const createNetMessageByIface = <T extends NetMessageIface>(msg: T): NetMessageIface => {
+  return msg;
 }
 
 const stringMessageTypeValues = Object.values(StringMessageType);
@@ -262,10 +297,10 @@ const stringMessageTypeValues = Object.values(StringMessageType);
  * @param jsonMesssage 
  * @returns 
  */
-export const parseNetMessageStrict = <T extends NetMessageType>(jsonMesssage: string): { msgType: T | null, msg: NetMessageToIface<T> } => {
+export const parseNetMessageStrict = <T extends NetMessageType>(jsonMesssage: string): { msgType: T | null, msg: NetMessageTypeToIface<T> } => {
   const msg = JSON.parse(jsonMesssage);
 
-  let messagePropName: string = nameOf<MessageWithNumberType>("t");
+  let messagePropName: string = nameOf<NumberTypeMessage>("t");
   if (msg[messagePropName] && msg[messagePropName] in NumberMessageType) {
     return {
       msgType: msg[messagePropName] as T,
@@ -273,7 +308,7 @@ export const parseNetMessageStrict = <T extends NetMessageType>(jsonMesssage: st
     }
   }
 
-  messagePropName = nameOf<MessageWithStringType>("type");
+  messagePropName = nameOf<StringTypeMessage>("type");
   if (msg[messagePropName] && stringMessageTypeValues.includes(msg[messagePropName])) {
     return {
       msgType: msg[messagePropName] as T,
@@ -293,10 +328,10 @@ export const parseNetMessageStrict = <T extends NetMessageType>(jsonMesssage: st
  * @param jsonMesssage 
  * @returns 
  */
-export const parseNetMessage = <T extends NetMessageType>(jsonMesssage: string): { msgType: T, msg: NetMessageToIface<T> } => {
+export const parseNetMessage = <T extends NetMessageType>(jsonMesssage: string): { msgType: T, msg: NetMessageTypeToIface<T> } => {
   const msg = JSON.parse(jsonMesssage);
   return {
-    msgType: (msg[nameOf<MessageWithNumberType>("t")] || msg[nameOf<MessageWithStringType>("type")]) as T,
+    msgType: (msg[nameOf<NumberTypeMessage>("t")] || msg[nameOf<StringTypeMessage>("type")]) as T,
     msg: msg,
   };
 }

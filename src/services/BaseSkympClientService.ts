@@ -1,10 +1,10 @@
 import * as sp from "skyrimPlatform";
 import { BaseEventEmitter } from '../common/BaseEventEmitter';
 import { EventEmitter, ConnectionState, IOMapEventEmitter } from '../common/types';
-import { NetMessageType, NetMessageTypeToIface, parseNetMessageStrict } from '../models/networkMessages';
+import { NetMessageType, IONetMessageTypeToIface, parseNetMessageStrict, NetMessageIface } from '../models/networkMessages';
 import { SettingsService } from './SettingsService';
 import { SkympClientService } from './types';
-import { NeverError } from './../errors/NeverError';
+import { NeverError } from '../errors/NeverError';
 import { UnknownMessageError } from "../errors/UnknownMessageError";
 
 /**
@@ -32,7 +32,7 @@ export class BaseSkympClientService implements SkympClientService {
     return this._onConnectionStateChangedEmitter;
   }
 
-  public get onMessageReceived(): IOMapEventEmitter<NetMessageTypeToIface> {
+  public get onMessageReceived(): IOMapEventEmitter<IONetMessageTypeToIface> {
     return this._onMessageReceiveEmitter;
   }
 
@@ -58,7 +58,7 @@ export class BaseSkympClientService implements SkympClientService {
     }
   }
 
-  public send(message: Record<string, unknown>, reliable: boolean): void {
+  public send(message: NetMessageIface, reliable: boolean): void {
     if (this._mpClientPlugin.isConnected() === false) return;
     this._mpClientPlugin.send(JSON.stringify(message), reliable);
   }

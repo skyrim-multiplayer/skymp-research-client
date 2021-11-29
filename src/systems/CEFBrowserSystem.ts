@@ -44,6 +44,10 @@ export class CEFBrowserSystem extends tk.System {
     this._browser.setFocused(value);
   }
 
+  public get token(): string {
+    return this._browser.getToken();
+  }
+
   /**
    * Load browser content by url (html, css, js)
    * @param url 

@@ -1,4 +1,3 @@
-
 import * as sp from "skyrimPlatform";
 import * as tk from "tick-knock";
 
@@ -14,6 +13,7 @@ import { WorldCleanerSystem } from '../systems/WorldCleanerSystem';
 import { TimeSystem } from '../systems/TimeSystem';
 import { CEFBrowserSystem } from '../systems/CEFBrowserSystem';
 import { WeatherSystem } from './../systems/WeatherSystem';
+import { AuthSystem } from './../systems/AuthSystem';
 
 export class SkympClientGameBuilder implements GameBuilder {
   Build(): Game {
@@ -38,6 +38,7 @@ engine.addSystem(new TimeSystem(), 1);
 engine.addSystem(new WorldCleanerSystem(), 2);
 engine.addSystem(new CEFBrowserSystem(), 3);
 engine.addSystem(new WeatherSystem(), 4);
+engine.addSystem(new AuthSystem(settingsService, skympClientService), 5);
 
 /* Game update */
 let engine_dt: number = Date.now();
@@ -49,15 +50,14 @@ sp.on("update", () => {
 /* Game logic test implementations */
 const Add_Connect_Disconnect_Test = (): void => {
   skympClientService.onConnectionStateChanged.addListener("connectionStateChanged", (newState) => sp.once("tick", () => {
-    sp.printConsole(`Connection state changed to "${newState}"`);
-    if (newState === "connected") {
-      skympClientService.disconnect();
-    }
+    logger.info(`Connection state changed to "${newState}"`);
+    // if (newState === "connected") {
+    //   skympClientService.disconnect();
+    // }
   }));
-  skympClientService.onError.addListener("error", (error) => sp.once("tick", () => sp.printConsole(`Error: ${error.message}`)));
-  skympClientService.onMessageReceived.addListener(StringMessageType.CustomPacket, (msg) => sp.once("tick", () => sp.printConsole(`SERVER: ${msg.type} ${JSON.stringify(msg.content)}`)));
-  skympClientService.onMessageReceived.addListener(StringMessageType.CreateActor, (msg) => sp.once("tick", () => sp.printConsole(`SERVER: ${msg.type} ${JSON.stringify(msg)}`)));
-  skympClientService.onMessageReceived.addListener(StringMessageType.UpdateGamemodeData, (msg) => sp.once("tick", () => sp.printConsole(`SERVER: ${msg.type} ${JSON.stringify(msg)}`)))
+  skympClientService.onError.addListener("error", (error) => logger.error(error.message));
+  skympClientService.onMessageReceived.addListener(StringMessageType.CreateActor, (msg) => logger.info(`SERVER: ${msg.type} ${JSON.stringify(msg)}`));
+  skympClientService.onMessageReceived.addListener(StringMessageType.UpdateGamemodeData, (msg) => logger.info(`SERVER: ${msg.type} ${JSON.stringify(msg)}`));
   skympClientService.connect();
 }
 

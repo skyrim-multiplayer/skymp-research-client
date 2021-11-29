@@ -55,3 +55,16 @@ export interface Game {
    */
   stop(): void;
 }
+
+/* Logs */
+
+export type logEventLevel = "debug" | "info" | "warn" | "error" | "fatal";
+
+export interface Logger {
+  write(level: logEventLevel, message: string): void;
+  debug(message: string): void;
+  info(message: string): void;
+  warn(message: string): void;
+  error(message: string): void;
+  fatal(message: string): void;
+}
